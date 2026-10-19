@@ -1,6 +1,6 @@
 import dns from "node:dns";
 import app from "./src/app.js";
-import connectDB from "./config/db.js";
+import connectDB from "./src/config/db.js";
 
 dns.setServers(["1.1.1.1"]);
 
