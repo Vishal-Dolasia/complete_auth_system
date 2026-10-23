@@ -60,13 +60,7 @@ export async function register(req,res){
             expiresIn : '15m'
         }
     )
-    
-
-    
-
-
-
-
+     
     res.cookie("refreshToken",refreshToken,{
         httpOnly: true,
         secure: true,
@@ -85,9 +79,6 @@ export async function register(req,res){
     })
 
 }
-
-
-
 export async function getMe(req,res){
     const token = req.headers.authorization?.split(" ")[1];
 
@@ -151,4 +142,34 @@ export async function refreshToken(req,res){
         maxAge: 7*24*60*60*1000
     })
 
+}
+
+export async function logout(req,res){
+    const refreshtoken = req.cookie.refreshToken;
+
+    if(!refreshtoken){
+        return res.status(401).json({
+            message: "refreshToken was not found"
+        })
+    }
+    const refreshTokenHash = crypto.createHash("sha256").update(refreshtoken).digest("hex");
+
+    const session = await sessionModel.findOne({
+        refreshTokenHash,
+        revoked: false
+    })
+    if(!session){
+        return res.status(401).json({
+            message: "session not found"
+        })
+    }
+
+    session.revoked = true;
+    await session.save();
+
+    res.clearCookie("refreshToken");
+
+    res.status(200).json({
+        message: "User logged out successfully"
+    })
 }
